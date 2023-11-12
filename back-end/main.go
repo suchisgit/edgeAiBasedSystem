@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 type DockerImage struct {
@@ -17,6 +18,8 @@ func main() {
 	app := fiber.New()
 
 	// dockerImage := DockerImage{}
+
+	app.Use(cors.New())
 
 	//health check endpoint
 	app.Get("/healthCheck", func(c *fiber.Ctx) error {
@@ -36,5 +39,8 @@ func main() {
 		fmt.Print(dockerImage)
 		return c.JSON(dockerImage)
 	})
+
+	// post upload file
+
 	log.Fatal(app.Listen(":4001"))
 }
