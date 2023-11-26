@@ -65,7 +65,7 @@ func main() {
 		// If the pod was created successfully, return a success response
 		return c.JSON(fiber.Map{
 			"success": true,
-			"message": "Pod created successfully",
+			"message": "able to pass data",
 		})
 	})
 
