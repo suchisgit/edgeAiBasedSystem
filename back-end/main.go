@@ -9,12 +9,22 @@ import (
 )
 
 type DockerImage struct {
-	DockerImage string `json:"dockerImage"`
+	DockerImageName string `json:"dockerImageName"`
+	AppName         string `json:"appName"`
+	Replicas        string `json:"replicas"`
+	Command         string `json:"command"`
 }
 
 type GithubPodCreation struct {
 	GithubUrl        string `json:"githubUrl"`
 	ExecutionCommand string `json:"executionCommand"`
+}
+
+type LocalContainer struct {
+	ContainerLocation string `json:"containerLocation"`
+	AppName           string `json:"appName"`
+	Replicas          string `json:"noOfReps"`
+	Command           string `json:"trigCmd"`
 }
 
 func main() {
@@ -31,7 +41,7 @@ func main() {
 		return c.SendString("OK")
 	})
 
-	//post
+	//post for dockerhub image
 	app.Post("/dockerImageName", func(c *fiber.Ctx) error {
 		var req DockerImage
 		// dockerImage := &DockerImage{}
@@ -40,9 +50,49 @@ func main() {
 			return err
 		}
 
-		dockerImage := req.DockerImage
-		fmt.Print(dockerImage)
-		return c.JSON(dockerImage)
+		dockerImageName := req.DockerImageName
+		appName := req.AppName
+		replicas := req.Replicas
+		command := req.Command
+		fmt.Print(dockerImageName)
+		fmt.Print(appName)
+		fmt.Print(replicas)
+		fmt.Print(command)
+		// all the pod creation logic goes here
+		return c.JSON(fiber.Map{
+			"success": true,
+			"message": "able to pass data",
+		})
+	})
+
+	//post for local container
+	app.Post("/localContainer", func(c *fiber.Ctx) error {
+		var req LocalContainer
+		// dockerImage := &DockerImage{}
+
+		// {
+		// 	containerLocation : containerLocation,
+		// 	appName: appName,
+		// 	replicas: noOfReps,
+		// 	command: trigCmd
+		//    }
+		if err := c.BodyParser(&req); err != nil {
+			return err
+		}
+
+		containerLocation := req.ContainerLocation
+		appName := req.AppName
+		replicas := req.Replicas
+		command := req.Command
+		fmt.Print(containerLocation)
+		fmt.Print(appName)
+		fmt.Print(replicas)
+		fmt.Print(command)
+		// all the pod creation logic goes here
+		return c.JSON(fiber.Map{
+			"success": true,
+			"message": "able to pass data",
+		})
 	})
 
 	//post

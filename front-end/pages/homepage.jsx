@@ -45,12 +45,14 @@ const Homepage = () => {
         <option value="form1">Dockerhub Image</option>
         <option value="form3">Github</option>
         <option value="form2">Code Files</option>
+        <option value="form4">Local Container</option>
       </select>
 
       <div style={{ marginTop: '20px' }}>
         {selectedOption === 'form1' && <Form1 />}
         {selectedOption === 'form2' && <Form2 />}
         {selectedOption === 'form3' && <Form3 />}
+        {selectedOption === 'form4' && <Form4 />}
       </div>
     </div>
   );
@@ -58,15 +60,22 @@ const Homepage = () => {
 
 const Form1 = () => {
   const [dockerhubImage, setDockerhubImage] = useState('');
-
-  const submitImage = (event) => {
-    setDockerhubImage(event.target.value);
-  };
-
+  const [appName, setAppName] = useState('');
+  const [noOfReps,setNoOfReps] = useState('');
+  const [trigCmd, setTrigCmd] = useState('');
+  // const submitImage = (event) => {
+  //   setDockerhubImage(event.target.value);
+  // };
+  // const 
   function handleCreatePod(event) {
     event.preventDefault();
     axios
-      .post('http://localhost:4001/dockerImageName', { DockerImage: dockerhubImage })
+      .post('http://localhost:4001/dockerImageName', { 
+        dockerHubImage : dockerhubImage,
+        appName: appName,
+        replicas: noOfReps,
+        command: trigCmd
+       })
       .then((response) => {
         console.log(response);
         if (response.status === 200) {
@@ -79,12 +88,14 @@ const Form1 = () => {
   return (
     <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: '20px', marginTop: '30px' }}>
       <div class="input-group mb-4 w-60" style={{ margin: '0 auto', textAlign: 'center', display: 'block' }}>
+        {/* From dockerhub images from the cloud */}
         <h4>Dockerhub details</h4>
       </div>
      
       <div>
+        {/* container details */}
         <span class="input-group-text" id="container-name" style={{ width: '400px' ,  fontWeight: 'bold'}}>
-          Container details
+          Dockerhub image
         </span>
         <input
           type="text"
@@ -97,6 +108,55 @@ const Form1 = () => {
           aria-describedby="inputGroup-sizing-default"
           style={{ width: '400px' }}
         ></input>
+
+        {/* app-name */}
+        <span class="input-group-text" id="app-name" style={{ width: '400px' ,  fontWeight: 'bold'}}>
+          App name
+        </span>
+        <input
+          type="text"
+          class="form-control"
+          name="appname"
+          value={appName}
+          onChange={(e) => setAppName(e.target.value)}
+          placeholder=""
+          aria-label="Sizing example input"
+          aria-describedby="inputGroup-sizing-default"
+          style={{ width: '400px' }}
+        ></input>
+
+        {/* number of replicas */}
+        <span class="input-group-text" id="replicas" style={{ width: '400px' ,  fontWeight: 'bold'}}>
+          number of replicas
+        </span>
+        <input
+          type="text"
+          class="form-control"
+          name="noOfReps"
+          value={noOfReps}
+          onChange={(e) => setNoOfReps(e.target.value)}
+          placeholder=""
+          aria-label="Sizing example input"
+          aria-describedby="inputGroup-sizing-default"
+          style={{ width: '400px' }}
+        ></input>
+
+        {/* trigCmd */}
+        <span class="input-group-text" id="command" style={{ width: '400px' ,  fontWeight: 'bold'}}>
+          trigger command
+        </span>
+        <input
+          type="text"
+          class="form-control"
+          name="trigCmd"
+          value={trigCmd}
+          onChange={(e) => setTrigCmd(e.target.value)}
+          placeholder="e.g, python app/mnist-main.py"
+          aria-label="Sizing example input"
+          aria-describedby="inputGroup-sizing-default"
+          style={{ width: '400px' }}
+        ></input>
+
       </div>
       <button type="button" class="btn btn-primary" onClick={handleCreatePod}>
         Create Pod
@@ -234,6 +294,111 @@ const Form3 = () => {
           ></input>
         </div>
 
+      <button type="button" class="btn btn-primary" onClick={handleCreatePod}>
+        Create Pod
+      </button>
+    </div>
+  );
+};
+
+const Form4 = () => {
+  const [containerLocation, setContainerLocation ] = useState('');
+  const [appName, setAppName] = useState('');
+  const [noOfReps,setNoOfReps] = useState('');
+  const [trigCmd, setTrigCmd] = useState('');
+  function handleCreatePod(event) {
+    event.preventDefault();
+    axios
+      .post('http://localhost:4001/localcontainer', { 
+        containerLocation : containerLocation,
+        appName: appName,
+        replicas: noOfReps,
+        command: trigCmd
+       })
+      .then((response) => {
+        console.log(response);
+        if (response.status === 200) {
+          alert('Next step is to automate pod creation for the given docker container!!');
+        }
+      })
+      .catch((err) => console.log(err));
+  }
+
+  return (
+    <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: '20px', marginTop: '30px' }}>
+      <div class="input-group mb-4 w-60" style={{ margin: '0 auto', textAlign: 'center', display: 'block' }}>
+        {/* local docker */}
+        <h4>Local docker</h4>
+      </div>
+     
+      <div>
+        
+        {/* local container files location THIS MIGHT CHANGE LATER */}
+        <span class="input-group-text" id="app-name" style={{ width: '400px' ,  fontWeight: 'bold'}}>
+          local container image details
+        </span>
+        <input
+          type="text"
+          class="form-control"
+          name="appname"
+          value={appName}
+          onChange={(e) => setAppName(e.target.value)}
+          placeholder=""
+          aria-label="Sizing example input"
+          aria-describedby="inputGroup-sizing-default"
+          style={{ width: '400px' }}
+        ></input>
+
+
+        {/* app-name */}
+        <span class="input-group-text" id="app-name" style={{ width: '400px' ,  fontWeight: 'bold'}}>
+          App name
+        </span>
+        <input
+          type="text"
+          class="form-control"
+          name="appname"
+          value={appName}
+          onChange={(e) => setAppName(e.target.value)}
+          placeholder=""
+          aria-label="Sizing example input"
+          aria-describedby="inputGroup-sizing-default"
+          style={{ width: '400px' }}
+        ></input>
+
+        {/* number of replicas */}
+        <span class="input-group-text" id="replicas" style={{ width: '400px' ,  fontWeight: 'bold'}}>
+          number of replicas
+        </span>
+        <input
+          type="text"
+          class="form-control"
+          name="noOfReps"
+          value={noOfReps}
+          onChange={(e) => setNoOfReps(e.target.value)}
+          placeholder=""
+          aria-label="Sizing example input"
+          aria-describedby="inputGroup-sizing-default"
+          style={{ width: '400px' }}
+        ></input>
+
+        {/* trigCmd */}
+        <span class="input-group-text" id="command" style={{ width: '400px' ,  fontWeight: 'bold'}}>
+          trigger command
+        </span>
+        <input
+          type="text"
+          class="form-control"
+          name="trigCmd"
+          value={trigCmd}
+          onChange={(e) => setTrigCmd(e.target.value)}
+          placeholder="e.g, python app/mnist-main.py"
+          aria-label="Sizing example input"
+          aria-describedby="inputGroup-sizing-default"
+          style={{ width: '400px' }}
+        ></input>
+
+      </div>
       <button type="button" class="btn btn-primary" onClick={handleCreatePod}>
         Create Pod
       </button>
