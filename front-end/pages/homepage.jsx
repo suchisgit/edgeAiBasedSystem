@@ -63,10 +63,6 @@ const Form1 = () => {
   const [appName, setAppName] = useState('');
   const [noOfReps,setNoOfReps] = useState('');
   const [trigCmd, setTrigCmd] = useState('');
-  // const submitImage = (event) => {
-  //   setDockerhubImage(event.target.value);
-  // };
-  // const 
   function handleCreatePod(event) {
     event.preventDefault();
     axios

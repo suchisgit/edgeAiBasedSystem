@@ -9,10 +9,10 @@ import (
 )
 
 type DockerImage struct {
-	DockerImageName string `json:"dockerImageName"`
-	AppName         string `json:"appName"`
-	Replicas        string `json:"replicas"`
-	Command         string `json:"command"`
+	DockerHubImageName string `json:"dockerHubImageName"`
+	AppName            string `json:"appName"`
+	Replicas           string `json:"replicas"`
+	Command            string `json:"command"`
 }
 
 type GithubPodCreation struct {
@@ -50,11 +50,11 @@ func main() {
 			return err
 		}
 
-		dockerImageName := req.DockerImageName
+		dockerHubImageName := req.DockerHubImageName
 		appName := req.AppName
 		replicas := req.Replicas
 		command := req.Command
-		fmt.Print(dockerImageName)
+		fmt.Print(dockerHubImageName)
 		fmt.Print(appName)
 		fmt.Print(replicas)
 		fmt.Print(command)
@@ -65,17 +65,10 @@ func main() {
 		})
 	})
 
-	//post for local container
+	//post api for local container
 	app.Post("/localContainer", func(c *fiber.Ctx) error {
 		var req LocalContainer
-		// dockerImage := &DockerImage{}
 
-		// {
-		// 	containerLocation : containerLocation,
-		// 	appName: appName,
-		// 	replicas: noOfReps,
-		// 	command: trigCmd
-		//    }
 		if err := c.BodyParser(&req); err != nil {
 			return err
 		}
