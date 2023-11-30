@@ -9,10 +9,10 @@ import (
 )
 
 type DockerImage struct {
-	DockerHubImageName string `json:"dockerHubImageName"`
-	AppName            string `json:"appName"`
-	Replicas           string `json:"replicas"`
-	Command            string `json:"command"`
+	DockerHubImage string `json:"dockerHubImage"`
+	AppName        string `json:"appName"`
+	Replicas       string `json:"replicas"`
+	Command        string `json:"command"`
 }
 
 type GithubPodCreation struct {
@@ -50,11 +50,11 @@ func main() {
 			return err
 		}
 
-		dockerHubImageName := req.DockerHubImageName
+		dockerHubImage := req.DockerHubImage
 		appName := req.AppName
 		replicas := req.Replicas
 		command := req.Command
-		fmt.Print(dockerHubImageName)
+		fmt.Print(dockerHubImage)
 		fmt.Print(appName)
 		fmt.Print(replicas)
 		fmt.Print(command)
