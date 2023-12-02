@@ -4,15 +4,20 @@ import (
 	"fmt"
 	"log"
 
+	"os"
+	"os/exec"
+	"strconv"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 type DockerImage struct {
-	DockerImageName string `json:"dockerImageName"`
-	AppName         string `json:"appName"`
-	Replicas        string `json:"replicas"`
-	Command         string `json:"command"`
+	DockerHubImage string `json:"dockerHubImage"`
+	AppName        string `json:"appName"`
+	Replicas       string `json:"replicas"`
+	Command        string `json:"command"`
 }
 
 type GithubPodCreation struct {
@@ -25,6 +30,96 @@ type LocalContainer struct {
 	AppName           string `json:"appName"`
 	Replicas          string `json:"noOfReps"`
 	Command           string `json:"trigCmd"`
+}
+
+func createPods(name string, fileLocation string, imageTag string, replicaCount int) {
+	print("Yo: ", imageTag)
+	// imageTag = "sarvagya23/mnist-fix:1.0"
+	servicePort := "5000" // Set your desired service port here
+
+	// Generate unique timestamp
+	timestamp := time.Now().Format("20060102150405")
+
+	// Append timestamp for uniqueness
+	deploymentName := fmt.Sprintf("%s-deployment-%s", name, timestamp)
+	serviceName := fmt.Sprintf("%s-service-%s", name, timestamp)
+	name = fmt.Sprintf("%s-%s", name, timestamp)
+	// Pull Docker image
+	dockerImage := fmt.Sprintf("%s", imageTag)
+	pullCmd := exec.Command("docker", "pull", dockerImage)
+	pullCmd.Stdout = os.Stdout
+	pullCmd.Stderr = os.Stderr
+	fmt.Println("Pulling Docker image...")
+	if err := pullCmd.Run(); err != nil {
+		log.Fatalf("Failed to pull Docker image: %s", err)
+	}
+
+	// Generate deployment YAML
+	deploymentYAML := []byte(fmt.Sprintf(`
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: %s
+spec:
+  replicas: %d
+  selector:
+    matchLabels:
+      app: %s
+  template:
+    metadata:
+      labels:
+        app: %s
+    spec:
+      containers:
+      - name: mnist-data
+        image: %s
+        command: ["python", "%s"]
+`, deploymentName, replicaCount, name, name, dockerImage, fileLocation))
+
+	deploymentFile := "deployment.yaml"
+	if err := os.WriteFile(deploymentFile, deploymentYAML, 0644); err != nil {
+		log.Fatalf("Failed to create deployment YAML file: %s", err)
+	}
+	fmt.Printf("Created %s\n", deploymentFile)
+
+	// Generate service YAML
+	serviceYAML := []byte(fmt.Sprintf(`
+apiVersion: v1
+kind: Service
+metadata:
+  name: %s
+spec:
+  selector:
+    app: %s
+  ports:
+  - protocol: TCP
+    port: %s
+    targetPort: %s
+`, serviceName, name, servicePort, servicePort))
+
+	serviceFile := "service.yaml"
+	if err := os.WriteFile(serviceFile, serviceYAML, 0644); err != nil {
+		log.Fatalf("Failed to create service YAML file: %s", err)
+	}
+	fmt.Printf("Created %s\n", serviceFile)
+
+	// Apply deployment and service YAML using kubectl
+	fmt.Println("Applying deployment and service to Kubernetes cluster...")
+	applyDeploymentCmd := exec.Command("kubectl", "apply", "-f", deploymentFile)
+	applyDeploymentCmd.Stdout = os.Stdout
+	applyDeploymentCmd.Stderr = os.Stderr
+	if err := applyDeploymentCmd.Run(); err != nil {
+		log.Fatalf("Failed to apply deployment: %s", err)
+	}
+
+	applyServiceCmd := exec.Command("kubectl", "apply", "-f", serviceFile)
+	applyServiceCmd.Stdout = os.Stdout
+	applyServiceCmd.Stderr = os.Stderr
+	if err := applyServiceCmd.Run(); err != nil {
+		log.Fatalf("Failed to apply service: %s", err)
+	}
+
+	fmt.Println("Deployment and service applied successfully!")
 }
 
 func main() {
@@ -50,18 +145,24 @@ func main() {
 			return err
 		}
 
-		dockerImageName := req.DockerImageName
+		dockerHubImage := req.DockerHubImage
 		appName := req.AppName
-		replicas := req.Replicas
 		command := req.Command
-		fmt.Print(dockerImageName)
-		fmt.Print(appName)
-		fmt.Print(replicas)
-		fmt.Print(command)
+		replicas, err := strconv.Atoi(req.Replicas)
+		if err != nil {
+			return err // Handle error if replicas cannot be converted to an integer
+		}
+		fmt.Println(dockerHubImage)
+		fmt.Println(appName)
+		fmt.Println(replicas)
+		fmt.Println(command)
+
+		createPods(appName, command, dockerHubImage, replicas)
+
 		// all the pod creation logic goes here
 		return c.JSON(fiber.Map{
 			"success": true,
-			"message": "able to pass data",
+			"message": "created pods successfully",
 		})
 	})
 
