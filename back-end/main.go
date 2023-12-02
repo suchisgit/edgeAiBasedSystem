@@ -166,17 +166,10 @@ func main() {
 		})
 	})
 
-	//post for local container
+	//post api for local container
 	app.Post("/localContainer", func(c *fiber.Ctx) error {
 		var req LocalContainer
-		// dockerImage := &DockerImage{}
 
-		// {
-		// 	containerLocation : containerLocation,
-		// 	appName: appName,
-		// 	replicas: noOfReps,
-		// 	command: trigCmd
-		//    }
 		if err := c.BodyParser(&req); err != nil {
 			return err
 		}
