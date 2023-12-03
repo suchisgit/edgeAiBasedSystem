@@ -162,19 +162,45 @@ const Form1 = () => {
 };
 
 const Form2 = () => {
+
+  
+
+  const [baseImage, setBaseImage] = useState('');
+  const [requirementsTxtPath, setRequirementsTxtPath] = useState('');
+  const [applicationCodeFolderPath,setApplicationCodeFolderPath] = useState('');
+  const [triggerCmd, setTriggerCmd] = useState('');
+  function handleCreatePod(event) {
+    event.preventDefault();
+    axios
+      .post('http://localhost:4001/codeFiles', { 
+        baseImage : baseImage,
+        requirementsTxtPath: requirementsTxtPath,
+        applicationCodeFolderPath: applicationCodeFolderPath,
+        triggerCmd: triggerCmd
+       })
+      .then((response) => {
+        console.log(response);
+        if (response.status === 200) {
+          alert('Next step is to automate pod creation for the given application code!!');
+        }
+      })
+      .catch((err) => console.log(err));
+  }
   return (
     <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.8)', padding: '20px', marginTop: '30px' }}>
       <div class="input-group mb-4 w-60" style={{ margin: '0 auto', textAlign: 'center', display: 'block' }}>
         <h4>Expected input</h4>
       </div>
 
+        {/* Base Image Name */}
         <div>
-          <span class="input-group-text" id="container-name-1" style={{ width: '400px' ,  fontWeight: 'bold'}}>
+          <span class="input-group-text" id="base-image" style={{ width: '400px' ,  fontWeight: 'bold'}}>
             Base Image
           </span>
           <input
             type="text"
             class="form-control"
+            onChange={(e) => setBaseImage(e.target.value)}
             placeholder="e.g, Python, Node.js, Ubuntu"
             aria-label="Sizing example input"
             aria-describedby="inputGroup-sizing-default"
@@ -182,39 +208,70 @@ const Form2 = () => {
           ></input>
         </div>
 
+        {/* requirements.txt path */}
         <div>
-          <div class="mb-3">
+          {/* <div class="mb-3">
             <label for="formFile" class="form-label" style={{ width: '400px' ,  fontWeight: 'bold' }}>
               requirements.txt file
             </label>
             <input class="form-control" type="file" id="formFile" style={{ width: '400px' }}></input>
-          </div>
+          </div> */}
+
+          <span class="input-group-text" id="requirements-txt" style={{ width: '400px' ,  fontWeight: 'bold'}}>
+            requirements.txt absolute path
+          </span>
+          <input
+            type="text"
+            class="form-control"
+            placeholder=""
+            onChange={(e) => setRequirementsTxtPath(e.target.value)}
+            aria-label="Sizing example input"
+            aria-describedby="inputGroup-sizing-default"
+            style={{ width: '400px' }}
+          ></input>
+
         </div>
 
+        {/* application code path */}
         <div>
-          <div class="mb-3">
+          {/* <div class="mb-3">
             <label for="formFile" class="form-label" style={{ width: '400px' ,  fontWeight: 'bold' }}>
               soruce code(zipped format)
             </label>
             <input class="form-control" type="file" id="formFile" style={{ width: '400px' }}></input>
-          </div>
+          </div> */}
+
+          <span class="input-group-text" id="application-path" style={{ width: '400px' ,  fontWeight: 'bold'}}>
+            Application code folder path
+          </span>
+          <input
+            type="text"
+            class="form-control"
+            placeholder=""
+            aria-label="Sizing example input"
+            aria-describedby="inputGroup-sizing-default"
+            onChange={(e) => setApplicationCodeFolderPath(e.target.value)}
+            style={{ width: '400px' }}
+          ></input>
         </div>
 
+        {/* TriggerCmd */}
         <div>
           <span class="input-group-text" id="container-name-3" style={{ width: '400px', color: 'black',  fontWeight: 'bold' }}>
-            Startup command
+            Trigger command
           </span>
           <input
             type="text"
             class="form-control"
             placeholder="e.g, python main.py"
             aria-label="Sizing example input"
+            onChange={(e) => setTriggerCmd(e.target.value)}
             aria-describedby="inputGroup-sizing-default"
             style={{ width: '400px' }}
           ></input>
         </div>
 
-      <button type="button" class="btn btn-primary" onClick="">
+      <button type="button" class="btn btn-primary" onClick={handleCreatePod}>
         Create Pod
       </button>
     </div>
@@ -225,11 +282,6 @@ const Form3 = () => {
 
   const [gitCloneURL, setgitCloneURL] = useState('');
   const [execCMD, setexecCMD] = useState('');
-
-  // const setGithub = {
-  //   "githubUrl": gitCloneURL,
-  //   "executionCommand": execCMD
-  // }
   const setGithub = ''
 
   function handleCreatePod(event) {

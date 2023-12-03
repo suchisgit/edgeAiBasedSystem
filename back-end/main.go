@@ -32,6 +32,43 @@ type LocalContainer struct {
 	Command           string `json:"trigCmd"`
 }
 
+type CodeFiles struct {
+	BaseImage                 string `json:"baseImage"`
+	RequirementsTxtPath       string `json:"requirementsTxtPath"`
+	ApplicationCodeFolderPath string `json:"applicationCodeFolderPath"`
+	TriggerCmd                string `json:"triggerCmd"`
+}
+
+func generateDockerfile(baseImage, appLocation, requirementsFile, triggerCommand string) string {
+	dockerfile := fmt.Sprintf(`
+FROM %s
+
+WORKDIR /app
+
+COPY %s .
+
+COPY %s .
+
+pip install requirements.txt
+
+# Specify the command to run on container start
+CMD %s
+`, baseImage, appLocation, requirementsFile, triggerCommand)
+
+	return dockerfile
+}
+
+func saveDockerfile(dockerfile, saveLocation string) error {
+	file, err := os.Create(saveLocation)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(dockerfile)
+	return err
+}
+
 func createPods(name string, fileLocation string, imageTag string, replicaCount int) {
 	print("Yo: ", imageTag)
 	// imageTag = "sarvagya23/mnist-fix:1.0"
@@ -56,24 +93,24 @@ func createPods(name string, fileLocation string, imageTag string, replicaCount 
 
 	// Generate deployment YAML
 	deploymentYAML := []byte(fmt.Sprintf(`
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: %s
-spec:
-  replicas: %d
-  selector:
-    matchLabels:
-      app: %s
-  template:
-    metadata:
-      labels:
-        app: %s
-    spec:
-      containers:
-      - name: mnist-data
-        image: %s
-        command: ["python", "%s"]
+	apiVersion: apps/v1
+	kind: Deployment
+	metadata:
+	name: %s
+	spec:
+	replicas: %d
+	selector:
+		matchLabels:
+		app: %s
+	template:
+		metadata:
+		labels:
+			app: %s
+		spec:
+		containers:
+		- name: mnist-data
+			image: %s
+			command: ["python", "%s"]
 `, deploymentName, replicaCount, name, name, dockerImage, fileLocation))
 
 	deploymentFile := "deployment.yaml"
@@ -157,6 +194,7 @@ func main() {
 		fmt.Println(replicas)
 		fmt.Println(command)
 
+		// commenting below code for now
 		createPods(appName, command, dockerHubImage, replicas)
 
 		// all the pod creation logic goes here
@@ -207,6 +245,45 @@ func main() {
 		// createPod function will be called here
 
 		// If the pod was created successfully, return a success response
+		return c.JSON(fiber.Map{
+			"success": true,
+			"message": "able to pass data",
+		})
+	})
+
+	app.Post("/codeFiles", func(c *fiber.Ctx) error {
+		var req CodeFiles
+
+		if err := c.BodyParser(&req); err != nil {
+			return err
+		}
+
+		baseImage := req.BaseImage
+		requirementsTxtPath := req.RequirementsTxtPath
+		applicationCodeFolderPath := req.ApplicationCodeFolderPath
+		triggerCmd := req.TriggerCmd
+		// fmt.Println("here")
+		fmt.Println(baseImage)
+		fmt.Println(requirementsTxtPath)
+		fmt.Println(applicationCodeFolderPath)
+		fmt.Println(triggerCmd)
+
+		// pod creation logic will come here
+		dockerfile := generateDockerfile(baseImage, applicationCodeFolderPath, requirementsTxtPath, triggerCmd)
+
+		// Specify the save location for the Dockerfile
+		saveLocation := "/Users/suchandrabajjuri/Desktop/suchi/dockerfile"
+		///Users/suchandrabajjuri/Desktop/suchi
+
+		// Call saveDockerfile
+		err := saveDockerfile(dockerfile, saveLocation)
+		if err != nil {
+			fmt.Println("Error saving Dockerfile:", err)
+			os.Exit(1)
+		}
+
+		fmt.Println("created docker file in the given location")
+
 		return c.JSON(fiber.Map{
 			"success": true,
 			"message": "able to pass data",

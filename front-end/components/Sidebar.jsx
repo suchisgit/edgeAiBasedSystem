@@ -2,6 +2,8 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { RxSketchLogo, RxDashboard, RxPerson, RxHome } from 'react-icons/rx';
+import { GrTrigger } from "react-icons/gr";
+import { FaRocket } from "react-icons/fa";
 import { HiOutlineShoppingBag } from 'react-icons/hi';
 import { FiSettings } from 'react-icons/fi';
 
@@ -24,6 +26,11 @@ const Sidebar = ({ children }) => {
           <Link href='/homepage'>
             <div className='bg-gray-100 hover:bg-gray-200 cursor-pointer my-4 p-3 rounded-lg inline-block'>
               <RxHome size={20} />
+            </div>
+          </Link>
+          <Link href='/triggerpod'>
+            <div className='bg-gray-100 hover:bg-gray-200 cursor-pointer my-4 p-3 rounded-lg inline-block'>
+              <FaRocket size={20} />
             </div>
           </Link>
           <Link href='/customers'>
