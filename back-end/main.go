@@ -1,8 +1,12 @@
+// new update Mar 19
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"log"
+	"strings"
 
 	"os"
 	"os/exec"
@@ -69,6 +73,10 @@ func saveDockerfile(dockerfile, saveLocation string) error {
 	return err
 }
 
+type App struct {
+	PodAppName string `json:"podAppName"`
+}
+
 func createPods(name string, fileLocation string, imageTag string, replicaCount int) {
 	print("Yo: ", imageTag)
 	// imageTag = "sarvagya23/mnist-fix:1.0"
@@ -93,24 +101,24 @@ func createPods(name string, fileLocation string, imageTag string, replicaCount 
 
 	// Generate deployment YAML
 	deploymentYAML := []byte(fmt.Sprintf(`
-	apiVersion: apps/v1
-	kind: Deployment
-	metadata:
-	name: %s
-	spec:
-	replicas: %d
-	selector:
-		matchLabels:
-		app: %s
-	template:
-		metadata:
-		labels:
-			app: %s
-		spec:
-		containers:
-		- name: mnist-data
-			image: %s
-			command: ["python", "%s"]
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: %s
+spec:
+  replicas: %d
+  selector:
+    matchLabels:
+      app: %s
+  template:
+    metadata:
+      labels:
+        app: %s
+    spec:
+      containers:
+      - name: mnist-data
+        image: %s
+        command: ["python", "%s"]
 `, deploymentName, replicaCount, name, name, dockerImage, fileLocation))
 
 	deploymentFile := "deployment.yaml"
@@ -204,6 +212,93 @@ func main() {
 		})
 	})
 
+	//sudo k3s kubectl delete deployment deployment-name (test-demo-suc-deployment-20240305121847)
+	// sudo k3s kubectl delete svc sercive-name (test-demo-suc-service-20240305121847)
+	app.Post("/deletePod", func(c *fiber.Ctx) error {
+		var req App
+
+		if err := c.BodyParser(&req); err != nil {
+			return err
+		}
+
+		podAppName := req.PodAppName
+		podAppNameNameWithDeployment := fmt.Sprintf("%s-deployment", podAppName)
+		podAppNameNameWithService := fmt.Sprintf("%s-service", podAppName)
+		fmt.Println(podAppNameNameWithService)
+
+		// Command to execute
+		// cmd := exec.Command("kubectl", "get", "deployments", "--no-headers")
+		cmd_deployments := exec.Command("bash", "-c", "kubectl get deployments --no-headers | awk '{print $1}'")
+		cmd_service := exec.Command("bash", "-c", "kubectl get svc --no-headers | awk '{print $1}'")
+		output_deployment, err := cmd_deployments.Output()
+		if err != nil {
+			fmt.Println("Error running deployment command:", err)
+			return err
+		}
+
+		output_svc, err := cmd_service.Output()
+		if err != nil {
+			fmt.Println("Error running svc command:", err)
+			return err
+		}
+		////
+		var actual_deployment_name string
+		var actual_service_name string
+
+		scanner := bufio.NewScanner(bytes.NewReader(output_deployment))
+		var deployments []string
+		for scanner.Scan() {
+			line := scanner.Text()
+			deployments = append(deployments, line) // Append each line to the deployments array
+		}
+
+		for _, deployment := range deployments {
+			if strings.HasPrefix(deployment, podAppNameNameWithDeployment) {
+				actual_deployment_name = deployment
+				break
+				//fmt.Printf("Deployment %s matches app name %s\n", deployment, appName)
+			}
+
+		}
+
+		////
+		scanner1 := bufio.NewScanner(bytes.NewReader(output_svc))
+		var services []string
+		for scanner1.Scan() {
+			line := scanner1.Text()
+			services = append(services, line) // Append each line to the deployments array
+		}
+		for _, service := range services {
+			// fmt.Println(service)
+			if strings.HasPrefix(service, podAppNameNameWithService) {
+				actual_service_name = service
+				break
+			}
+
+		}
+		fmt.Println(actual_deployment_name)
+		fmt.Println(actual_service_name)
+		// fmt.Sprintf("echo %s | sudo -S kubectl delete deployment %s", password, deploymentName)
+		var pass string
+		pass = "test"
+		cmd_delete_deployments := exec.Command("bash", "-c", fmt.Sprintf("echo %s | sudo k3s kubectl delete deployment %s", pass, actual_deployment_name))
+		// fmt.Println("Command:", cmd_delete_deployments)
+		cmd_delete_service := exec.Command("bash", "-c", fmt.Sprintf("echo %s | sudo k3s kubectl delete svc %s", pass, actual_service_name))
+		output_delete_deployment, err := cmd_delete_deployments.Output()
+		if err != nil {
+			fmt.Println("Error unable to delete deployment:", output_delete_deployment, err)
+			return err
+		}
+		output_delete_service, err := cmd_delete_service.Output()
+		if err != nil {
+			fmt.Println("Error unable to delete service :", output_delete_service, err)
+			return err
+		}
+		return c.JSON(fiber.Map{
+			"success": true,
+			"message": "successfully deleted the pod",
+		})
+	})
 	//post api for local container
 	app.Post("/localContainer", func(c *fiber.Ctx) error {
 		var req LocalContainer
