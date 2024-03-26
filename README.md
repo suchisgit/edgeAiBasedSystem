@@ -21,7 +21,7 @@ This repository contains a Next.js-based frontend and a Golang-based backend, cr
 
 ### 1) automation bash scripts inside automation-scripts folder has to be run.
 
-### 2) all the pods has to be deployed based on the configuration files provided in the configuration-files foler.
+### 2) all the pods has to be deployed based on the configuration files provided in the configuration-files folder.
 
 ### 3) command to run front-end <br>
 `npm run dev -- -p 4000`
